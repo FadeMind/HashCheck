@@ -41,11 +41,15 @@ jobs:
           Copy-Item -Path "Release/x64/HashCheck.dll" -Destination "Release/x64/" -ErrorAction SilentlyContinue
           Copy-Item -Path "Release/Win32/HashCheck.dll" -Destination "Release/Win32/" -ErrorAction SilentlyContinue
 
-      # 8. NSIS
+      # 8. Instalacja NSIS
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      # 9. NSIS
       - name: Compile NSIS Installer
         run: makensis installer/HashCheck.nsi
 
-      # 9. Artefakt
+      # 10. Artefakt
       - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
