@@ -7,40 +7,47 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # 1. Checkout
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      # 2. MSBuild
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
 
-    # Kompilacja wersji 32-bitowej
-    - name: Build x86
-      run: |
-        msbuild HashCheck.sln /p:Configuration=Release /p:Platform=Win32 /p:OutDir=../Release/Win32/
+      # 3. ❗ NuGet MUSI być osobnym krokiem
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
 
-    # Kompilacja wersji 64-bitowej
-    - name: Build x64
-      run: |
-        msbuild HashCheck.sln /p:Configuration=Release /p:Platform=x64 /p:OutDir=../Release/x64/
+      # 4. ❗ Restore (TEGO BRAKOWAŁO poprawnie)
+      - name: Restore NuGet packages
+        run: nuget restore HashCheck.sln
 
-    # Budowa instalatora za pomocą makensis
-    # Wskazujemy ścieżkę do pliku .nsi
-    
-    - name: Prepare folders for NSIS
-      run: |
-        mkdir -p Release/Win32
-        mkdir -p Release/x64
-        # Kopiujemy pliki tam, gdzie chce ich skrypt .nsi
-        cp x64/Release/HashCheck.dll Release/x64/ 2>$null || cp Release/x64/HashCheck.dll Release/x64/
-        cp Release/HashCheck.dll Release/Win32/ 2>$null || cp Win32/Release/HashCheck.dll Release/Win32/
-      
-    - name: Compile NSIS Installer
-      run: |
-        makensis installer/HashCheck.nsi
+      # 5. Build x86
+      - name: Build x86
+        run: msbuild HashCheck.sln /p:Configuration=Release /p:Platform=Win32 /p:OutDir=../Release/Win32/
 
-    # Zapisanie gotowego pliku .exe jako artefakt do pobrania
-    - name: Upload Installer
-      uses: actions/upload-artifact@v4
-      with:
-        name: HashCheck-Setup
-        path: installer/*.exe
+      # 6. Build x64
+      - name: Build x64
+        run: msbuild HashCheck.sln /p:Configuration=Release /p:Platform=x64 /p:OutDir=../Release/x64/
+
+      # 7. Przygotowanie folderów
+      - name: Prepare folders for NSIS
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path Release/Win32
+          New-Item -ItemType Directory -Force -Path Release/x64
+
+          Copy-Item -Path "Release/x64/HashCheck.dll" -Destination "Release/x64/" -ErrorAction SilentlyContinue
+          Copy-Item -Path "Release/Win32/HashCheck.dll" -Destination "Release/Win32/" -ErrorAction SilentlyContinue
+
+      # 8. NSIS
+      - name: Compile NSIS Installer
+        run: makensis installer/HashCheck.nsi
+
+      # 9. Artefakt
+      - name: Upload Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: HashCheck-Setup
+          path: installer/*.exe
