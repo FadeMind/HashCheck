@@ -47,7 +47,7 @@ jobs:
 
       # 9. NSIS
       - name: Compile NSIS Installer
-        run: makensis installer/HashCheck.nsi
+        run: '"C:\Program Files (x86)\NSIS\makensis.exe" installer/HashCheck.nsi'
 
       # 10. Artefakt
       - name: Upload Installer
