@@ -1,13 +1,6 @@
 name: Build HashCheck Installer
 
-on:
-  push:
-    branches: [ "**" ]
-  pull_request:
-    branches: [ "**" ]
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+on: [push, pull_request]
 
 jobs:
   build:
@@ -20,27 +13,34 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
-    # Kompilacja x86 - używamy Get-ChildItem, aby PowerShell sam znalazł ścieżkę
+    # Kompilacja wersji 32-bitowej
     - name: Build x86
       run: |
-        $proj = (Get-ChildItem -Filter "HashCheck.vcxproj" -Recurse).FullName[0]
-        msbuild $proj /p:Configuration=Release /p:Platform=Win32 /p:OutDir="../Release/Win32/"
+        msbuild HashCheck.sln /p:Configuration=Release /p:Platform=Win32 /p:OutDir=../Release/Win32/
 
-    # Kompilacja x64
+    # Kompilacja wersji 64-bitowej
     - name: Build x64
       run: |
-        $proj = (Get-ChildItem -Filter "HashCheck.vcxproj" -Recurse).FullName[0]
-        msbuild $proj /p:Configuration=Release /p:Platform=x64 /p:OutDir="../Release/x64/"
+        msbuild HashCheck.sln /p:Configuration=Release /p:Platform=x64 /p:OutDir=../Release/x64/
 
-    # Kompilacja instalatora NSIS
+    # Budowa instalatora za pomocą makensis
+    # Wskazujemy ścieżkę do pliku .nsi
+    
+    - name: Prepare folders for NSIS
+      run: |
+        mkdir -p Release/Win32
+        mkdir -p Release/x64
+        # Kopiujemy pliki tam, gdzie chce ich skrypt .nsi
+        cp x64/Release/HashCheck.dll Release/x64/ 2>$null || cp Release/x64/HashCheck.dll Release/x64/
+        cp Release/HashCheck.dll Release/Win32/ 2>$null || cp Win32/Release/HashCheck.dll Release/Win32/
+      
     - name: Compile NSIS Installer
       run: |
-        $nsi = (Get-ChildItem -Filter "HashCheck.nsi" -Recurse).FullName[0]
-        makensis $nsi
+        makensis installer/HashCheck.nsi
 
-    # Przesłanie gotowego instalatora
+    # Zapisanie gotowego pliku .exe jako artefakt do pobrania
     - name: Upload Installer
       uses: actions/upload-artifact@v4
       with:
-        name: HashCheck-Setup-Package
-        path: "**/HashCheck*.exe"
+        name: HashCheck-Setup
+        path: installer/*.exe
