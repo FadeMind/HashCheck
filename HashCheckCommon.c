@@ -16,7 +16,7 @@
 #include <Strsafe.h>
 
 #define PROGRESS_BAR_STEPS 300
-#define BLAKE3_TBB_MIN_FILE_SIZE (128ULL * 1024ULL)
+#define BLAKE3_TBB_MIN_FILE_SIZE (512ULL * 1024ULL)
 
 HANDLE __fastcall CreateThreadCRT( PVOID pThreadProc, PVOID pvParam )
 {
@@ -76,7 +76,23 @@ static BOOL WINAPI IsBLAKE3TbbRuntimeAvailable( )
 
 	if (lState == 0)
 	{
-		s_hTbb = LoadLibrary(TEXT("tbb12.dll"));
+		if (g_hModThisDll)
+		{
+			TCHAR szTbbPath[MAX_PATH << 1];
+			if (GetModuleFileName(g_hModThisDll, szTbbPath, countof(szTbbPath)))
+			{
+				PTSTR pszFileName = StrRChr(szTbbPath, NULL, TEXT('\\'));
+				if (pszFileName)
+				{
+					*(pszFileName + 1) = 0;
+					if (SUCCEEDED(StringCchCat(szTbbPath, countof(szTbbPath), TEXT("tbb12.dll"))))
+						s_hTbb = LoadLibrary(szTbbPath);
+				}
+			}
+		}
+
+		if (!s_hTbb)
+			s_hTbb = LoadLibrary(TEXT("tbb12.dll"));
 		InterlockedExchange(&s_lTbbState, s_hTbb ? 2 : 1);
 	}
 	else
@@ -111,7 +127,7 @@ BOOL WINAPI ShouldUseBLAKE3Tbb( const WHCTXEX* pwhctx, ULONGLONG cbFileSize,
 	if (dwReadBufferSize == 0)
 		return(FALSE);
 
-	if (cbFileSize <= BLAKE3_TBB_MIN_FILE_SIZE || cbFileSize > dwReadBufferSize)
+	if (cbFileSize < BLAKE3_TBB_MIN_FILE_SIZE || cbFileSize > dwReadBufferSize)
 		return(FALSE);
 
 #if defined(HASHCHECK_BLAKE3_TBB_DELAYLOAD)

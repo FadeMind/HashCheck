@@ -71,7 +71,7 @@
     <Import Project="HashCheckGlobalDefines.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <HashCheckExperimentalBlake3Tbb>false</HashCheckExperimentalBlake3Tbb>
+    <HashCheckBlake3Tbb Condition="'$(HashCheckBlake3Tbb)'==''">true</HashCheckBlake3Tbb>
     <HashCheckTbbRoot Condition="'$(HashCheckTbbRoot)'==''">$(ProjectDir)libs\oneTBB\$(Platform)\</HashCheckTbbRoot>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -191,9 +191,9 @@
       <AdditionalLibraryDirectories>$(ProjectDir)libs\openssl\x64\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' and '$(HashCheckExperimentalBlake3Tbb)'=='true'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' and '$(HashCheckBlake3Tbb)'=='true'">
     <ClCompile>
-      <PreprocessorDefinitions>HASHCHECK_EXPERIMENTAL_BLAKE3_TBB;HASHCHECK_BLAKE3_TBB_DELAYLOAD;BLAKE3_USE_TBB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HASHCHECK_BLAKE3_TBB;HASHCHECK_BLAKE3_TBB_DELAYLOAD;BLAKE3_USE_TBB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(HashCheckTbbRoot)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -201,10 +201,13 @@
       <AdditionalLibraryDirectories>$(HashCheckTbbRoot)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>tbb12.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(HashCheckTbbRoot)bin\tbb12.dll" copy /Y "$(HashCheckTbbRoot)bin\tbb12.dll" "$(OutDir)tbb12.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <BuildMacro Include="HashCheckExperimentalBlake3Tbb">
-      <Value>$(HashCheckExperimentalBlake3Tbb)</Value>
+    <BuildMacro Include="HashCheckBlake3Tbb">
+      <Value>$(HashCheckBlake3Tbb)</Value>
     </BuildMacro>
     <BuildMacro Include="HashCheckTbbRoot">
       <Value>$(HashCheckTbbRoot)</Value>
@@ -222,9 +225,9 @@
     <ClCompile Include="HashVerify.cpp" />
     <ClCompile Include="libs\BLAKE3\blake3.c" />
     <ClCompile Include="libs\BLAKE3\blake3_tbb.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'!='Release|x64' or '$(HashCheckExperimentalBlake3Tbb)'!='true'">true</ExcludedFromBuild>
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64' and '$(HashCheckExperimentalBlake3Tbb)'=='true'">false</ExceptionHandling>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64' and '$(HashCheckExperimentalBlake3Tbb)'=='true'">TBB_USE_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'!='Release|x64' or '$(HashCheckBlake3Tbb)'!='true'">true</ExcludedFromBuild>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64' and '$(HashCheckBlake3Tbb)'=='true'">false</ExceptionHandling>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64' and '$(HashCheckBlake3Tbb)'=='true'">TBB_USE_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="libs\BLAKE3\blake3_avx2.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

@@ -495,6 +495,32 @@ HRESULT Uninstall( )
 	// Schedule the DLL to be deleted at shutdown/reboot
 	if (!MoveFileEx(lpszFileToDelete, NULL, MOVEFILE_DELAY_UNTIL_REBOOT)) hr = E_FAIL;
 
+#ifdef _WIN64
+	// Remove the x64 TBB runtime installed beside the shell extension.
+	{
+		TCHAR szTbbPath[MAX_PATH << 1];
+		StringCbCopy(szTbbPath, sizeof(szTbbPath), szCurrentDllPath);
+
+		PTSTR pszFileName = StrRChr(szTbbPath, NULL, TEXT('\\'));
+		if (pszFileName)
+		{
+			StringCbCopy(
+				pszFileName + 1,
+				sizeof(szTbbPath) - BYTEDIFF(pszFileName + 1, szTbbPath),
+				TEXT("tbb12.dll")
+			);
+			MoveFileEx(szTbbPath, NULL, MOVEFILE_DELAY_UNTIL_REBOOT);
+
+			StringCbCopy(
+				pszFileName + 1,
+				sizeof(szTbbPath) - BYTEDIFF(pszFileName + 1, szTbbPath),
+				TEXT("tbb12-LICENSE.txt")
+			);
+			DeleteFile(szTbbPath);
+		}
+	}
+#endif
+
 	// Unregister
 	if (DllUnregisterServer() != S_OK) hr = E_FAIL;
 

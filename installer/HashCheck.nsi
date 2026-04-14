@@ -82,6 +82,15 @@ Section
         IfErrors abort_on_error
         Delete $0
 
+        ; Install the 64-bit TBB runtime beside the shell extension DLL.
+        Delete /REBOOTOK "$SYSDIR\ShellExt\tbb12.dll"
+        ClearErrors
+        SetOutPath "$SYSDIR\ShellExt"
+        File /oname=tbb12.dll ..\Bin\x64\Release\tbb12.dll
+        IfErrors abort_on_error
+        File /oname=tbb12-LICENSE.txt ..\libs\oneTBB\LICENSE.txt
+        IfErrors abort_on_error
+
         ; One of these 64-bit dlls exists and is undeletable if and
         ; only if it was in use and therefore a reboot is now required
         Delete /REBOOTOK $SYSDIR\ShellExt\HashCheck.dll.0

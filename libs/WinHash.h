@@ -27,7 +27,8 @@ extern "C" {
 #define USE_PPL
 #endif
 
-#if defined(HASHCHECK_EXPERIMENTAL_BLAKE3_TBB) && defined(BLAKE3_USE_TBB) && \
+#if (defined(HASHCHECK_BLAKE3_TBB) || defined(HASHCHECK_EXPERIMENTAL_BLAKE3_TBB)) && \
+    defined(BLAKE3_USE_TBB) && \
     (defined(_M_X64) || defined(__x86_64__)) && !defined(_M_ARM64EC)
 #define HASHCHECK_BLAKE3_TBB_ENABLED 1
 #endif
