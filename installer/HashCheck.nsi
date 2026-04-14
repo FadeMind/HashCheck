@@ -77,7 +77,7 @@ Section
         ${DisableX64FSRedirection}
 
         ; Install the 64-bit dll
-        File /oname=$0 ..\Bin\x64\Release\HashCheck.dll
+        File /oname=$0 ..\..\Release\x64\HashCheck.dll
         ExecWait 'regsvr32 /i /n /s "$0"'
         IfErrors abort_on_error
         Delete $0
@@ -86,7 +86,7 @@ Section
         Delete /REBOOTOK "$SYSDIR\ShellExt\tbb12.dll"
         ClearErrors
         SetOutPath "$SYSDIR\ShellExt"
-        File /oname=tbb12.dll ..\Bin\x64\Release\tbb12.dll
+        File /oname=tbb12.dll ..\..\Release\x64\tbb12.dll
         IfErrors abort_on_error
         File /oname=tbb12-LICENSE.txt ..\libs\oneTBB\LICENSE.txt
         IfErrors abort_on_error
@@ -107,12 +107,12 @@ Section
         ${EnableX64FSRedirection}
 
         ; Install the 32-bit dll (the 64-bit dll handles uninstallation for both)
-        File /oname=$0 ..\Bin\Win32\Release\HashCheck.dll
+        File /oname=$0 ..\..\Release\Win32\HashCheck.dll
         ExecWait 'regsvr32 /i:"NoUninstall" /n /s "$0"'
         IfErrors abort_on_error
     ${Else}
         ; Install the 32-bit dll
-        File /oname=$0 ..\Bin\Win32\Release\HashCheck.dll
+        File /oname=$0 ..\..\Release\Win32\HashCheck.dll
         ExecWait 'regsvr32 /i /n /s "$0"'
         IfErrors abort_on_error	
     ${EndIf}
