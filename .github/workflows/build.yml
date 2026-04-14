@@ -2,6 +2,10 @@ name: Build HashCheck Installer
 
 on: [push, pull_request]
 
+# Dodanie zmiennej środowiskowej, o którą prosi GitHub
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: windows-latest
@@ -13,23 +17,18 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
-    # Kompilacja wersji 32-bitowej
     - name: Build x86
       run: |
         msbuild HashCheck.sln /p:Configuration=Release /p:Platform=Win32 /p:OutDir=../Release/Win32/
 
-    # Kompilacja wersji 64-bitowej
     - name: Build x64
       run: |
         msbuild HashCheck.sln /p:Configuration=Release /p:Platform=x64 /p:OutDir=../Release/x64/
 
-    # Budowa instalatora za pomocą makensis
-    # Wskazujemy ścieżkę do pliku .nsi
     - name: Compile NSIS Installer
       run: |
         makensis installer/HashCheck.nsi
 
-    # Zapisanie gotowego pliku .exe jako artefakt do pobrania
     - name: Upload Installer
       uses: actions/upload-artifact@v4
       with:
