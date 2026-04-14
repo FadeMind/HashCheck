@@ -1,8 +1,11 @@
 name: Build HashCheck Installer
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
 
-# Dodanie zmiennej środowiskowej, o którą prosi GitHub
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -19,11 +22,11 @@ jobs:
 
     - name: Build x86
       run: |
-        msbuild HashCheck.sln /p:Configuration=Release /p:Platform=Win32 /p:OutDir=../Release/Win32/
+        msbuild HashCheck/HashCheck.vcxproj /p:Configuration=Release /p:Platform=Win32 /p:OutDir=../Release/Win32/
 
     - name: Build x64
       run: |
-        msbuild HashCheck.sln /p:Configuration=Release /p:Platform=x64 /p:OutDir=../Release/x64/
+        msbuild HashCheck/HashCheck.vcxproj /p:Configuration=Release /p:Platform=x64 /p:OutDir=../Release/x64/
 
     - name: Compile NSIS Installer
       run: |
@@ -32,5 +35,5 @@ jobs:
     - name: Upload Installer
       uses: actions/upload-artifact@v4
       with:
-        name: HashCheck-Setup
+        name: HashCheck-Setup-Package
         path: installer/*.exe
