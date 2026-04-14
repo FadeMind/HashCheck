@@ -1,0 +1,39 @@
+name: Build HashCheck
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    # 1. Kompilacja wersji x64
+    - name: Build x64
+      run: msbuild HashCheck.sln /p:Configuration=Release /p:Platform=x64
+
+    # 2. Kompilacja wersji x86 (Win32)
+    - name: Build x86
+      run: msbuild HashCheck.sln /p:Configuration=Release /p:Platform=Win32
+
+    # 3. Kompilacja instalatora NSIS
+    - name: Build Installer (NSIS)
+      run: |
+        makensis installer/HashCheck.nsi
+      # Uwaga: Upewnij się, że ścieżki do DLL w pliku .nsi są poprawne względem katalogu głównego
+
+    # 4. Przesłanie gotowego instalatora jako artefakt
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: HashCheck-Installer
+        path: installer/*.exe
