@@ -20,25 +20,27 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
-    # Kompilacja wersji 32-bit (Win32)
-    # Z logów wynika, że ścieżka to ./HashCheck/HashCheck.vcxproj
+    # Kompilacja x86 - używamy Get-ChildItem, aby PowerShell sam znalazł ścieżkę
     - name: Build x86
       run: |
-        msbuild "HashCheck/HashCheck.vcxproj" /p:Configuration=Release /p:Platform=Win32 /p:OutDir="../Release/Win32/"
+        $proj = (Get-ChildItem -Filter "HashCheck.vcxproj" -Recurse).FullName[0]
+        msbuild $proj /p:Configuration=Release /p:Platform=Win32 /p:OutDir="../Release/Win32/"
 
-    # Kompilacja wersji 64-bit (x64)
+    # Kompilacja x64
     - name: Build x64
       run: |
-        msbuild "HashCheck/HashCheck.vcxproj" /p:Configuration=Release /p:Platform=x64 /p:OutDir="../Release/x64/"
+        $proj = (Get-ChildItem -Filter "HashCheck.vcxproj" -Recurse).FullName[0]
+        msbuild $proj /p:Configuration=Release /p:Platform=x64 /p:OutDir="../Release/x64/"
 
     # Kompilacja instalatora NSIS
     - name: Compile NSIS Installer
       run: |
-        makensis installer/HashCheck.nsi
+        $nsi = (Get-ChildItem -Filter "HashCheck.nsi" -Recurse).FullName[0]
+        makensis $nsi
 
     # Przesłanie gotowego instalatora
     - name: Upload Installer
       uses: actions/upload-artifact@v4
       with:
         name: HashCheck-Setup-Package
-        path: installer/*.exe
+        path: "**/HashCheck*.exe"
